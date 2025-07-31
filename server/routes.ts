@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload dataset
-  app.post("/api/projects/:id/upload", upload.single("file"), async (req, res) => {
+  app.post("/api/projects/:id/upload", upload.single("file"), async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const file = req.file;
@@ -87,8 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Parse CSV and extract metadata
       const csvData = file.buffer.toString();
-      const lines = csvData.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(',').map(h => h.trim());
+      const lines = csvData.split('\n').filter((line: string) => line.trim());
+      const headers = lines[0].split(',').map((h: string) => h.trim());
       const rows = lines.length - 1;
 
       const dataset = await storage.createDataset({

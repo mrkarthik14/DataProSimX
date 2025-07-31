@@ -99,7 +99,7 @@ export default function ProgressPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {user?.badges?.slice(-3).map((badge: any, index: number) => (
+                  {(Array.isArray(user?.badges) ? user.badges.slice(-3) : []).map((badge: any, index: number) => (
                     <div key={index} className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
                       <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
                         <Trophy className="w-5 h-5 text-white" />

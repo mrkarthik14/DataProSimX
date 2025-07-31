@@ -53,7 +53,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Medal className="w-5 h-5 text-yellow-300" />
-                      <span className="font-medium">{user?.badges?.length || 0} Badges Earned</span>
+                      <span className="font-medium">{Array.isArray(user?.badges) ? user.badges.length : 0} Badges Earned</span>
                     </div>
                   </div>
                 </div>
