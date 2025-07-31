@@ -6,7 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { PROJECT_TEMPLATES, getTemplatesByDifficulty, getTemplatesByDomain } from "@/lib/project-templates";
 import { 
   Briefcase, 
   Clock, 
@@ -19,7 +23,10 @@ import {
   Star,
   ChevronRight,
   Calendar,
-  Award
+  Award,
+  Search,
+  Filter,
+  PlayCircle
 } from "lucide-react";
 
 interface RealWorldProject {
