@@ -8,6 +8,10 @@ import Dashboard from "@/pages/dashboard";
 import Simulation from "@/pages/simulation";
 import Roles from "@/pages/roles";
 import Progress from "@/pages/progress";
+import CodeEditor from "@/pages/code-editor";
+import Challenges from "@/pages/challenges";
+import Community from "@/pages/community";
+import ProjectsHub from "@/pages/projects-hub";
 
 function Router() {
   return (
@@ -17,6 +21,10 @@ function Router() {
       <Route path="/simulation/:projectId?" component={Simulation} />
       <Route path="/roles" component={Roles} />
       <Route path="/progress" component={Progress} />
+      <Route path="/code-editor/:projectId?" component={CodeEditor} />
+      <Route path="/challenges" component={Challenges} />
+      <Route path="/community" component={Community} />
+      <Route path="/projects-hub" component={ProjectsHub} />
       <Route component={NotFound} />
     </Switch>
   );

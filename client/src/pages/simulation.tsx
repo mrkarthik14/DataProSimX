@@ -1,15 +1,18 @@
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@shared/schema";
 import Navigation from "@/components/navigation";
 import ChartBuilder from "@/components/chart-builder";
+import ExplainabilityModule from "@/components/explainability-module";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Upload, Play } from "lucide-react";
+import { Upload, Play, Brain, BarChart3, Code2 } from "lucide-react";
 
 export default function Simulation() {
   const { projectId } = useParams();
+  const [showExplainability, setShowExplainability] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
@@ -66,47 +69,80 @@ export default function Simulation() {
           </Card>
         )}
 
-        {(project.currentStep === "eda" || project.currentStep === "modeling") && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ChartBuilder projectId={project.id} />
+        {(project.currentStep === "eda" || project.currentStep === "modeling") && !showExplainability && (
+          <div className="space-y-8">
+            {/* Advanced Tools Bar */}
             <Card>
-              <CardHeader>
-                <CardTitle>Dataset Preview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">customer_id</th>
-                        <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">tenure</th>
-                        <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">monthly_charges</th>
-                        <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">churn</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-gray-100">
-                        <td className="py-2 px-3 text-sm text-gray-900">CUST_001</td>
-                        <td className="py-2 px-3 text-sm text-gray-900">24</td>
-                        <td className="py-2 px-3 text-sm text-gray-900">$89.50</td>
-                        <td className="py-2 px-3 text-sm">
-                          <Badge variant="destructive">Yes</Badge>
-                        </td>
-                      </tr>
-                      <tr className="border-b border-gray-100">
-                        <td className="py-2 px-3 text-sm text-gray-900">CUST_002</td>
-                        <td className="py-2 px-3 text-sm text-gray-900">36</td>
-                        <td className="py-2 px-3 text-sm text-gray-900">$65.20</td>
-                        <td className="py-2 px-3 text-sm">
-                          <Badge variant="secondary">No</Badge>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <Button variant="outline" onClick={() => window.open(`/code-editor/${projectId}`, '_blank')}>
+                      <Code2 className="w-4 h-4 mr-2" />
+                      Open Code Editor
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowExplainability(true)}>
+                      <Brain className="w-4 h-4 mr-2" />
+                      Model Explainability
+                    </Button>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800">
+                    <BarChart3 className="w-3 h-3 mr-1" />
+                    Advanced Features Active
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ChartBuilder projectId={project.id} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dataset Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">customer_id</th>
+                          <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">tenure</th>
+                          <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">monthly_charges</th>
+                          <th className="text-left py-2 px-3 text-sm font-medium text-gray-900">churn</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 px-3 text-sm text-gray-900">CUST_001</td>
+                          <td className="py-2 px-3 text-sm text-gray-900">24</td>
+                          <td className="py-2 px-3 text-sm text-gray-900">$89.50</td>
+                          <td className="py-2 px-3 text-sm">
+                            <Badge variant="destructive">Yes</Badge>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 px-3 text-sm text-gray-900">CUST_002</td>
+                          <td className="py-2 px-3 text-sm text-gray-900">36</td>
+                          <td className="py-2 px-3 text-sm text-gray-900">$65.20</td>
+                          <td className="py-2 px-3 text-sm">
+                            <Badge variant="secondary">No</Badge>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+        )}
+
+        {/* Explainability Module */}
+        {showExplainability && (
+          <ExplainabilityModule 
+            projectId={project.id} 
+            modelType="Random Forest Classifier"
+            onClose={() => setShowExplainability(false)}
+          />
         )}
       </main>
     </div>

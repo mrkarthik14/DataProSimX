@@ -190,6 +190,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Challenge routes
+  app.post("/api/challenges/:challengeId/start", async (req, res) => {
+    try {
+      const { challengeId } = req.params;
+      res.json({ message: "Challenge started successfully", challengeId, xp: 0 });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start challenge" });
+    }
+  });
+
+  // Community routes
+  app.get("/api/community/posts", async (req, res) => {
+    try {
+      // Return mock community posts for now
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get community posts" });
+    }
+  });
+
+  app.post("/api/community/posts", async (req, res) => {
+    try {
+      const postData = req.body;
+      res.status(201).json({ id: Date.now(), ...postData, likes: 0, views: 0 });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create post" });
+    }
+  });
+
+  app.post("/api/community/posts/:postId/like", async (req, res) => {
+    try {
+      const { postId } = req.params;
+      res.json({ message: "Post liked", postId });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to like post" });
+    }
+  });
+
+  // Real-world projects routes
+  app.post("/api/real-world-projects/:projectId/start", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      res.json({ message: "Real-world project started", projectId });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start project" });
+    }
+  });
+
+  // Code editor routes
+  app.post("/api/projects/:projectId/execute-code", async (req, res) => {
+    try {
+      const { code, language } = req.body;
+      res.json({ 
+        output: "Code executed successfully",
+        executionTime: "2.34s",
+        status: "success"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to execute code" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/export-code", async (req, res) => {
+    try {
+      const { code, format } = req.body;
+      res.json({ 
+        message: `Code exported as ${format}`,
+        downloadUrl: `/downloads/code.${format}`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export code" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

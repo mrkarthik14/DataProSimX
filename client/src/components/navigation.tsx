@@ -12,8 +12,11 @@ export default function Navigation({ user }: NavigationProps) {
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/simulation", label: "Simulation" },
+    { href: "/code-editor", label: "Code Editor" },
+    { href: "/challenges", label: "Challenges" },
+    { href: "/community", label: "Community" },
+    { href: "/projects-hub", label: "Projects Hub" },
     { href: "/progress", label: "Progress" },
-    { href: "#mentorship", label: "AI Mentor" },
   ];
 
   return (
