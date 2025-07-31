@@ -121,9 +121,18 @@ The application follows a modern full-stack architecture with clear separation b
 1. **Monorepo Structure**: Single repository with client, server, and shared code for easier development and deployment
 2. **TypeScript Throughout**: Full type safety from database to UI components
 3. **Shared Schema**: Database schema shared between client and server for consistent typing
-4. **In-Memory Storage Fallback**: MemStorage class provides development/demo functionality without database dependencies
+4. **PostgreSQL Database**: Persistent data storage using Neon serverless PostgreSQL with Drizzle ORM
 5. **Component-Based UI**: Modular component architecture with reusable UI primitives
 6. **Route-Based Code Splitting**: Separate page components for better performance
 7. **API-First Design**: RESTful API design with consistent error handling and logging
+
+### Recent Changes
+
+- **January 31, 2025**: Added PostgreSQL database integration
+  - Migrated from in-memory storage to DatabaseStorage class
+  - Set up Neon serverless PostgreSQL connection
+  - Created complete database schema with users, projects, datasets, achievements tables
+  - Seeded initial demo data for testing
+  - Fixed TypeScript errors and HTML validation warnings
 
 The architecture prioritizes developer experience, type safety, and scalability while maintaining simplicity for the educational simulation use case.
