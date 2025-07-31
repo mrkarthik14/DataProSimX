@@ -1,0 +1,171 @@
+🧠 Replit Prompt: Build DataProSimX – An End-to-End Data Science Simulation Platform
+
+Objective:
+Create a full-stack web application named DataProSimX that simulates real-world career workflows for data professionals like Data Analysts, Data Engineers, ML Engineers, and AI Researchers. The app guides users step-by-step from data ingestion to deployment with real-time AI mentorship, gamification, and career tracking.
+🧩 Core Features (To Include in Replit Project)
+
+    🎛️ Role-Based Simulation Tracks
+
+        Pages for role selection (/roles)
+
+        Roles: Data Analyst, Data Engineer, ML Engineer, AI Researcher
+
+        Dynamic dashboards, KPIs, and job-specific flows
+    📥 Data Ingestion Studio
+
+        Upload files (CSV, Excel, JSON)
+
+        API connectors: Kaggle, Google Sheets, Weather API
+
+        Simple Web Scraping UI using BeautifulSoup (mocked)
+
+        Auto metadata and schema detection (Python backend)
+    🧹 Data Cleaning Lab
+
+        Excel-like table interface with:
+
+            Null handler, outlier removal, data type correction
+
+            Drag & drop + pandas code view
+
+        Built using React Table + FastAPI endpoints
+    🛠️ Feature Engineering Zone
+
+        Options for:
+
+            Encoding, PCA, TF-IDF, SHAP
+
+            AI feature suggestions
+
+        Users can view generated Python code
+    📊 EDA & Visualization Studio
+
+        No-code chart builder + text-to-chart (powered by Gemini/Genkit API)
+
+        Histogram, scatter, boxplot, heatmap
+
+        SQL Playground with Text-to-SQL support
+    🤖 Modeling Workbench
+
+        ML Task selector: classification, regression, clustering, NLP
+
+        AutoML or manual (train/test split, cross-validation)
+
+        Show metrics: accuracy, AUC, RMSE, confusion matrix
+
+        Code execution powered by scikit-learn, xgboost, etc.
+    🚀 Deployment Studio
+
+        Auto-generate REST API using FastAPI
+
+        Deploy Streamlit dashboard frontend
+
+        Simulate CI/CD using GitHub Actions (mock in UI)
+
+        One-click GitHub export of model + README
+    📈 Final Report Generator
+
+        Auto-generate executive summary, charts, findings
+
+        Export report as PDF
+
+        Save project artifact to user dashboard
+    🧠 AI Mentor + Assistant
+
+        Integrated chatbot for:
+
+            Hints, explanations, code feedback
+
+            Resume review and interview Q&A
+
+        Powered by Gemini/Genkit or OpenAI (user-configurable)
+    🎮 Gamified Career System
+
+    XP tracker and badges (e.g., Data Wizard, SQL Master)
+
+    Project history with levels: Intern → Lead Scientist
+
+    Resume Builder with export-ready templates
+
+    Radar chart of strengths per role
+
+    🔄 Live Collaboration & Feedback Loop
+
+    Real-time shared workspace (CRDT or Socket.IO)
+
+    Users can pair-program, leave comments
+
+    Retry or improve task using AI suggestions (e.g., “Optimize SQL”)
+
+⚙️ Technical Stack
+Layer	Tech
+Frontend	Next.js + TypeScript + Tailwind CSS
+Backend	FastAPI + Celery + WebSocket
+AI Integration	Gemini API / Genkit / HuggingFace
+DB	PostgreSQL + Redis
+Visualization	Recharts, Plotly, D3.js
+Deployment	Docker + Railway / Render
+Realtime Sync	WebSockets + CRDT + Socket.IO
+🔗 Pages & Navigation Workflow (Figma/Router structure)
+
+graph TD;
+  A[Landing Page] --> B[Role Selection]
+  B --> C[Scenario Onboarding]
+  C --> D[Data Ingestion Studio]
+  D --> E[Data Cleaning Lab]
+  E --> F[Feature Engineering Zone]
+  F --> G[EDA & Visualizations]
+  G --> H[Model Building & Evaluation]
+  H --> I[Deployment Studio]
+  I --> J[Final Report Generator]
+  J --> K[User Dashboard]
+  K --> L[Career Progress Tracker]
+
+🧪 Optional Add-ons
+
+    Versioned Pipelines with rollback
+
+    Notion/Slack export of project summary
+
+    Prompt Studio for LLM-based tasks
+
+    Real-world case study selector (Finance, Healthcare, Retail)
+
+📁 Suggested Replit Project Structure
+
+/frontend
+  /pages
+    index.tsx (Landing)
+    /roles
+    /simulation
+      ingestion.tsx
+      cleaning.tsx
+      features.tsx
+      eda.tsx
+      modeling.tsx
+      deployment.tsx
+      report.tsx
+    /dashboard
+  /components
+  /styles
+/backend
+  main.py (FastAPI entry)
+  /routes
+    ingestion.py
+    cleaning.py
+    modeling.py
+    deployment.py
+  /ai_helpers
+  /utils
+  /db
+    models.py
+    schema.sql
+.env
+docker-compose.yml
+README.md
+
+🪄 Final Instructions for Replit
+
+👉 Prompt Input:
+
+Create a full-stack simulation app called "DataProSimX" with a Next.js frontend and FastAPI backend,
