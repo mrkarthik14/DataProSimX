@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { BarChart3, Database, Brain, Search, CheckCircle, ArrowRight, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -53,18 +52,26 @@ export default function Roles() {
 
   const createProjectMutation = useMutation({
     mutationFn: async (roleData: { roleId: string; roleName: string }) => {
-      const response = await apiRequest("/api/projects", {
+      const response = await fetch("/api/projects", {
         method: "POST",
-        body: {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           title: `${roleData.roleName} Simulation Project`,
           description: `Complete data science simulation as a ${roleData.roleName}`,
           role: roleData.roleId,
           currentStep: "data_ingestion",
           status: "in_progress",
           progress: 0
-        }
+        })
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error("Failed to create project");
+      }
+      
+      return response.json();
     },
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -74,7 +81,8 @@ export default function Roles() {
       });
       setIsCreatingProject(false);
       // Navigate to the simulation with the project ID
-      setLocation(`/simulation?projectId=${project?.id || ''}`);
+      // Navigate to the simulation page
+      setLocation(`/simulation`);
     },
     onError: () => {
       toast({
