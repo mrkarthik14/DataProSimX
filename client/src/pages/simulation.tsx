@@ -54,18 +54,40 @@ export default function Simulation() {
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("Upload successful:", data);
+      
+      // Update project to next step after successful upload
+      if (currentProject) {
+        try {
+          await fetch(`/api/projects/${currentProject.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              currentStep: 'data_cleaning',
+              progress: 25,
+              datasetInfo: data.dataset
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to update project step:", error);
+        }
+      }
+      
       toast({
         title: "Upload successful",
-        description: "Your dataset has been uploaded and analyzed.",
+        description: "Your dataset has been uploaded and analyzed. Moving to data cleaning step.",
       });
       setIsUploading(false);
+      
       // Refresh project data
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       if (projectId) {
         queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
       }
+      
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -196,6 +218,71 @@ export default function Simulation() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {currentProject.currentStep === "data_cleaning" && (
+          <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Data Cleaning & Preprocessing</CardTitle>
+                <p className="text-gray-600">Clean and prepare your data for analysis</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Data Quality Issues</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <span className="text-sm">Missing values detected</span>
+                        <Button size="sm" variant="outline">Fix</Button>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded">
+                        <span className="text-sm">Duplicate rows found</span>
+                        <Button size="sm" variant="outline">Remove</Button>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded">
+                        <span className="text-sm">Data types validated</span>
+                        <Button size="sm" variant="outline">Review</Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Quick Actions</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="h-16 flex-col">
+                        <div className="text-xs">Remove</div>
+                        <div className="text-xs">Outliers</div>
+                      </Button>
+                      <Button variant="outline" className="h-16 flex-col">
+                        <div className="text-xs">Fill Missing</div>
+                        <div className="text-xs">Values</div>
+                      </Button>
+                      <Button variant="outline" className="h-16 flex-col">
+                        <div className="text-xs">Normalize</div>
+                        <div className="text-xs">Data</div>
+                      </Button>
+                      <Button variant="outline" className="h-16 flex-col" onClick={() => {
+                        // Move to next step
+                        fetch(`/api/projects/${currentProject.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ currentStep: 'eda', progress: 50 })
+                        }).then(() => {
+                          queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+                          if (projectId) {
+                            queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+                          }
+                        });
+                      }}>
+                        <div className="text-xs">Continue to</div>
+                        <div className="text-xs">EDA</div>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {(currentProject.currentStep === "eda" || currentProject.currentStep === "modeling") && !showExplainability && (
