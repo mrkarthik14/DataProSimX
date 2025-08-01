@@ -15,6 +15,7 @@ export default function Simulation() {
   const [location] = useLocation();
   const [showExplainability, setShowExplainability] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [forceCurrentStep, setForceCurrentStep] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -25,18 +26,39 @@ export default function Simulation() {
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
-    refetchInterval: 2000, // Refetch every 2 seconds
+    refetchInterval: 1000, // Refetch every second for immediate updates
+    refetchOnWindowFocus: true,
   });
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
     enabled: !!projectId,
-    refetchInterval: 2000, // Refetch every 2 seconds to pick up changes
+    refetchInterval: 1000, // Refetch every second for immediate updates
+    refetchOnWindowFocus: true,
   });
 
   // If no project ID, use the first available project
-  const currentProject = projectId ? project : projects?.[0];
+  const baseProject = projectId ? project : projects?.[0];
   const loading = projectId ? isLoading : projectsLoading;
+
+  // Override the current step if we have a forced value
+  const currentProject = baseProject ? {
+    ...baseProject,
+    currentStep: forceCurrentStep || baseProject.currentStep
+  } : null;
+
+  // Log current project state for debugging
+  console.log("Current project state:", {
+    projectId,
+    baseProject: baseProject ? {
+      id: baseProject.id,
+      currentStep: baseProject.currentStep,
+      progress: baseProject.progress
+    } : null,
+    forceCurrentStep,
+    finalCurrentStep: currentProject?.currentStep,
+    hasDataset: !!currentProject?.datasetInfo
+  });
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -75,6 +97,9 @@ export default function Simulation() {
           });
           const updatedProject = await updateResponse.json();
           console.log("Project updated:", updatedProject);
+          
+          // Force the UI to show the new step immediately
+          setForceCurrentStep('data_cleaning');
         } catch (error) {
           console.error("Failed to update project step:", error);
         }
@@ -86,18 +111,15 @@ export default function Simulation() {
       });
       setIsUploading(false);
       
-      // Force refresh project data with a small delay to ensure backend update completes
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-        if (projectId) {
-          queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
-        }
-        // Also refetch explicitly
-        queryClient.refetchQueries({ queryKey: ["/api/projects"] });
-        if (projectId) {
-          queryClient.refetchQueries({ queryKey: ["/api/projects", projectId] });
-        }
-      }, 500);
+      // Immediately invalidate and refetch to force UI update
+      await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      if (projectId) {
+        await queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      }
+      await queryClient.refetchQueries({ queryKey: ["/api/projects"] });
+      if (projectId) {
+        await queryClient.refetchQueries({ queryKey: ["/api/projects", projectId] });
+      }
       
       // Reset file input
       if (fileInputRef.current) {

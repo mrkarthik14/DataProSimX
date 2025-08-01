@@ -1,0 +1,37 @@
+🔧 PRIORITY 1: Simulation Flow & Data Pipeline Bugs
+Problem	Fix
+🔁 "Start Simulation" directly jumps to broken simulation	Implement step-wise navigation (pre-checks for uploaded dataset, user profile, simulation config)
+🧹 Data Cleaning page shows default dataset	Fix context/state bug to use uploaded dataset → connect to Redux/Context or localStorage
+📊 EDA & Visualization Studio not showing accurate results	Ensure pandas_profiling, ydata-profiling, or sweetviz uses the uploaded dataset and not fallback
+🧑‍💻 Code editor doesn't execute Python	Integrate a sandboxed Python runtime (e.g., Pyodide, Brython, or a backend API with Python interpreter)
+🤖 PRIORITY 2: AI Integration (ChatGPT + Gemini + NLP)
+Feature	Fix/Implementation
+❌ AIMentor not responding	Add AI backend using OpenAI (for GPT) and Gemini via Genkit API with fallback + NLP intent routing
+💬 No contextual EDA/NLP guidance	Embed “Contextual Tips” — show suggestions after data upload, cleaning, or plotting
+🧠 Micro challenges with AI are broken	Build AI-generated micro-challenges per user skill (use Bloom’s taxonomy), add timer, XP, hints
+🎨 PRIORITY 3: UX, Themes & Interactivity
+Feature	Fix
+⚙️ No light/dark/custom themes	Integrate Tailwind’s dark mode + @tailwindcss/forms/colors/typography + color picker
+⌛ File upload not interactive	Add animated file loaders using Lottie or React Spinners
+📊 Limited chart types in Chart Builder	Extend to include Pie, Radar, Treemap, Heatmap using Recharts, Chart.js, or Apache ECharts
+🧭 Transitions are abrupt	Use Framer Motion or GSAP for smooth page/view/component transitions
+🧑‍💼 PRIORITY 4: User System + Dashboard
+Problem	Fix
+👤 Demo user only	Add Firebase Auth or JWT-based login system with Google Sign-In, store users in PostgreSQL or Supabase
+⚙️ No profile/settings	Create Profile page → edit info, theme prefs, past activity, badge collection
+📈 No skill tracker	Add charts showing project completion, quiz stats, XP gained over time
+📦 PRIORITY 5: Project & Community Hub
+Feature	Fix
+🧪 Project Hub not working	Fix fetch logic from DB (project metadata), allow filtering, searching, difficulty selection
+🏅 No certs or badges	Generate dynamic certs (via PDFKit or HTML-to-PDF), create badge system using XP milestones
+🌐 Community broken	Add upvote/downvote, threaded comments, AI-generated suggestions, leaderboard
+📢 Showcase not functional	Add share-to-profile and public feed of projects, auto-generate previews with metadata extraction
+🛠 PRIORITY 6: Data Extraction & Pre-Built Actions
+Page	Add
+🔄 Extraction	Add tabs for SQL, Excel, and Python Notebook upload
+📌 Quick Fix Buttons	Add prebuilt options: remove duplicates, fill nulls, encode categorical, normalize columns, etc. (Backend: pandas + FastAPI routes)
+⚙️ Developer Tools
+Tool	Add
+🚀 One-click project templates	Choose project domain → auto-generate folder with starter code
+🎮 Gamified UI	Use toast animations, XP counters, badge popups, level-up animations
+🧠 AI Tips	Add floating AI assistant with tooltips (can integrate with OpenAI or Gemini for real-time guidance)
