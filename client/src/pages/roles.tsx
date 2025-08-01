@@ -1,11 +1,20 @@
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Database, Brain, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { BarChart3, Database, Brain, Search, CheckCircle, ArrowRight, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Roles() {
   const [, setLocation] = useLocation();
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const roles = [
     {
@@ -42,9 +51,49 @@ export default function Roles() {
     },
   ];
 
+  const createProjectMutation = useMutation({
+    mutationFn: async (roleData: { roleId: string; roleName: string }) => {
+      const response = await apiRequest("/api/projects", {
+        method: "POST",
+        body: {
+          title: `${roleData.roleName} Simulation Project`,
+          description: `Complete data science simulation as a ${roleData.roleName}`,
+          role: roleData.roleId,
+          currentStep: "data_ingestion",
+          status: "in_progress",
+          progress: 0
+        }
+      });
+      return response;
+    },
+    onSuccess: (project) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: "Project Created!",
+        description: `Your ${selectedRole} simulation project is ready to begin.`
+      });
+      setIsCreatingProject(false);
+      // Navigate to the simulation with the project ID
+      setLocation(`/simulation?projectId=${project?.id || ''}`);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive"
+      });
+      setIsCreatingProject(false);
+      setSelectedRole(null);
+    }
+  });
+
   const handleRoleSelect = (roleId: string) => {
-    // Create new project with selected role
-    setLocation("/simulation");
+    const role = roles.find(r => r.id === roleId);
+    if (!role) return;
+    
+    setSelectedRole(role.title);
+    setIsCreatingProject(true);
+    createProjectMutation.mutate({ roleId, roleName: role.title });
   };
 
   return (
@@ -62,13 +111,26 @@ export default function Roles() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {roles.map((role) => {
             const IconComponent = role.icon;
+            const isSelected = selectedRole === role.title;
+            const isLoading = isCreatingProject && isSelected;
+            
             return (
-              <Card key={role.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card key={role.id} className={`transition-all duration-200 ${
+                isSelected ? 'ring-2 ring-primary border-primary shadow-lg' : 'hover:shadow-lg'
+              }`}>
                 <CardHeader>
-                  <div className={`w-16 h-16 bg-gradient-to-br ${role.color} rounded-lg flex items-center justify-center mb-4`}>
+                  <div className={`w-16 h-16 bg-gradient-to-br ${role.color} rounded-lg flex items-center justify-center mb-4 relative`}>
                     <IconComponent className="w-8 h-8 text-white" />
+                    {isSelected && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div>
+                    )}
                   </div>
-                  <CardTitle className="text-2xl">{role.title}</CardTitle>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    {role.title}
+                    {isSelected && <Badge className="bg-primary text-white">Selected</Badge>}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-6">{role.description}</p>
@@ -77,18 +139,33 @@ export default function Roles() {
                     <h4 className="font-semibold text-gray-900 mb-3">Key Skills:</h4>
                     <div className="flex flex-wrap gap-2">
                       {role.skills.map((skill) => (
-                        <span key={skill} className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+                        <Badge key={skill} variant="secondary" className="text-sm">
                           {skill}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   </div>
 
                   <Button 
-                    className="w-full"
+                    className={`w-full ${isSelected ? 'bg-primary' : ''}`}
                     onClick={() => handleRoleSelect(role.id)}
+                    disabled={isCreatingProject}
                   >
-                    Start {role.title} Simulation
+                    {isLoading ? (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Project...
+                      </>
+                    ) : isSelected ? (
+                      <>
+                        <ArrowRight className="w-4 h-4 mr-2" />
+                        Starting Simulation...
+                      </>
+                    ) : (
+                      <>
+                        Start {role.title} Simulation
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>

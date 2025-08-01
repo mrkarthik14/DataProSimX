@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@shared/schema";
 import Navigation from "@/components/navigation";
@@ -11,20 +11,49 @@ import { Button } from "@/components/ui/button";
 import { Upload, Play, Brain, BarChart3, Code2 } from "lucide-react";
 
 export default function Simulation() {
-  const { projectId } = useParams();
+  const [location] = useLocation();
   const [showExplainability, setShowExplainability] = useState(false);
+  
+  // Get project ID from URL parameters
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const projectId = urlParams.get('projectId');
+
+  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
+    queryKey: ["/api/projects"],
+  });
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
     enabled: !!projectId,
   });
 
-  if (isLoading) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  // If no project ID, use the first available project
+  const currentProject = projectId ? project : projects?.[0];
+  const loading = projectId ? isLoading : projectsLoading;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading your simulation...</div>
+        </div>
+      </div>
+    );
   }
 
-  if (!project) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Project not found</div>;
+  if (!currentProject) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Projects</h2>
+          <p className="text-gray-600 mb-4">Create a new project to start your simulation</p>
+          <Button onClick={() => window.location.href = '/roles'}>
+            Choose Your Role
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -35,22 +64,22 @@ export default function Simulation() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
-              <p className="text-gray-600 mt-2">{project.description}</p>
+              <h1 className="text-3xl font-bold text-gray-900">{currentProject.title}</h1>
+              <p className="text-gray-600 mt-2">{currentProject.description}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant={project.status === "completed" ? "default" : "secondary"}>
-                {project.status.replace("_", " ")}
+              <Badge variant={currentProject.status === "completed" ? "default" : "secondary"}>
+                {currentProject.status.replace("_", " ")}
               </Badge>
               <div className="text-right">
                 <div className="text-sm text-gray-500">Progress</div>
-                <div className="text-2xl font-bold text-primary">{project.progress}%</div>
+                <div className="text-2xl font-bold text-primary">{currentProject.progress}%</div>
               </div>
             </div>
           </div>
         </div>
 
-        {project.currentStep === "data_ingestion" && (
+        {currentProject.currentStep === "data_ingestion" && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Data Ingestion</CardTitle>
@@ -69,14 +98,14 @@ export default function Simulation() {
           </Card>
         )}
 
-        {(project.currentStep === "eda" || project.currentStep === "modeling") && !showExplainability && (
+        {(currentProject.currentStep === "eda" || currentProject.currentStep === "modeling") && !showExplainability && (
           <div className="space-y-8">
             {/* Advanced Tools Bar */}
             <Card>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <Button variant="outline" onClick={() => window.open(`/code-editor/${projectId}`, '_blank')}>
+                    <Button variant="outline" onClick={() => window.open(`/code-editor/${currentProject.id}`, '_blank')}>
                       <Code2 className="w-4 h-4 mr-2" />
                       Open Code Editor
                     </Button>
@@ -94,7 +123,7 @@ export default function Simulation() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ChartBuilder projectId={project.id} />
+              <ChartBuilder projectId={currentProject.id} />
               <Card>
                 <CardHeader>
                   <CardTitle>Dataset Preview</CardTitle>
@@ -139,7 +168,7 @@ export default function Simulation() {
         {/* Explainability Module */}
         {showExplainability && (
           <ExplainabilityModule 
-            projectId={project.id} 
+            projectId={currentProject.id} 
             modelType="Random Forest Classifier"
             onClose={() => setShowExplainability(false)}
           />
