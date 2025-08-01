@@ -4,16 +4,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Project } from "@shared/schema";
 import Navigation from "@/components/navigation";
 import ChartBuilder from "@/components/chart-builder";
+import AIMentor from "@/components/ai-mentor";
+import ContextualTips from "@/components/contextual-tips";
+import MicroChallenges from "@/components/micro-challenges";
 import ExplainabilityModule from "@/components/explainability-module";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Play, Brain, BarChart3, Code2 } from "lucide-react";
+import { Upload, Play, Brain, BarChart3, Code2, Bot, Lightbulb } from "lucide-react";
 
 export default function Simulation() {
   const [location] = useLocation();
   const [showExplainability, setShowExplainability] = useState(false);
+  const [showContextualTips, setShowContextualTips] = useState(false);
+  const [tipsType, setTipsType] = useState<'data_upload' | 'data_cleaning' | 'eda' | 'modeling' | 'chart_generation'>('eda');
   const [isUploading, setIsUploading] = useState(false);
   const [forceCurrentStep, setForceCurrentStep] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -333,6 +338,17 @@ export default function Simulation() {
                       <Brain className="w-4 h-4 mr-2" />
                       Model Explainability
                     </Button>
+                    <Button 
+                      onClick={() => {
+                        setTipsType('eda');
+                        setShowContextualTips(true);
+                      }}
+                      variant="outline"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Lightbulb className="w-4 h-4 mr-2" />
+                      Get AI Tips
+                    </Button>
                   </div>
                   <Badge className="bg-green-100 text-green-800">
                     <BarChart3 className="w-3 h-3 mr-1" />
@@ -382,6 +398,45 @@ export default function Simulation() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        )}
+
+        {/* AI Integration Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          {/* AI Mentor */}
+          <div className="lg:col-span-2">
+            <AIMentor 
+              context={{
+                projectTitle: currentProject.title,
+                currentStep: finalCurrentStep,
+                datasetInfo: currentProject.datasetInfo,
+                userLevel: 2
+              }}
+            />
+          </div>
+          
+          {/* Micro Challenges */}
+          <div>
+            <MicroChallenges 
+              userLevel={2}
+              skillArea="data_analysis"
+              datasetInfo={currentProject.datasetInfo}
+              onChallengeComplete={(xp) => {
+                console.log(`Earned ${xp} XP!`);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Contextual Tips */}
+        {showContextualTips && (
+          <div className="mt-6">
+            <ContextualTips 
+              triggerType={tipsType}
+              datasetInfo={currentProject.datasetInfo}
+              userLevel={2}
+              onClose={() => setShowContextualTips(false)}
+            />
           </div>
         )}
 

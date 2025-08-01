@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { aiService } from "./ai-service";
 import { insertProjectSchema, insertDatasetSchema } from "@shared/schema";
 import multer from "multer";
 
@@ -318,6 +319,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to export code" });
+    }
+  });
+
+  // AI Mentor Routes
+  app.post("/api/ai/mentor", async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      const response = await aiService.getMentorResponse({ message, context });
+      res.json({ response });
+    } catch (error) {
+      console.error("AI Mentor error:", error);
+      res.status(500).json({ message: "Failed to get AI response" });
+    }
+  });
+
+  // Contextual Tips Routes
+  app.post("/api/ai/tips", async (req, res) => {
+    try {
+      const { type, datasetInfo, userLevel, recentActions } = req.body;
+      const tips = await aiService.generateContextualTips({
+        type,
+        datasetInfo,
+        userLevel,
+        recentActions
+      });
+      res.json({ tips });
+    } catch (error) {
+      console.error("Contextual tips error:", error);
+      res.status(500).json({ message: "Failed to generate tips" });
+    }
+  });
+
+  // Micro-challenges Routes
+  app.post("/api/ai/challenge", async (req, res) => {
+    try {
+      const { userLevel, skillArea, datasetInfo, completedChallenges } = req.body;
+      const challenge = await aiService.generateMicroChallenge({
+        userLevel,
+        skillArea,
+        datasetInfo,
+        completedChallenges
+      });
+      res.json(challenge);
+    } catch (error) {
+      console.error("Micro-challenge error:", error);
+      res.status(500).json({ message: "Failed to generate challenge" });
     }
   });
 
