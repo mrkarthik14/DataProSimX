@@ -35,18 +35,21 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
     enabled: !!projectId,
   });
 
+  // Extract columns safely
+  const datasetInfo = project?.datasetInfo as any;
+  const availableColumns: string[] = Array.isArray(datasetInfo?.columns) ? datasetInfo.columns : [];
+
   // Set default axes based on available columns
   useEffect(() => {
-    if (project?.datasetInfo && Array.isArray(project.datasetInfo.columns)) {
-      const columns = project.datasetInfo.columns;
-      if (!xAxis && columns.length > 0) {
-        setXAxis(columns[0]);
+    if (availableColumns.length > 0) {
+      if (!xAxis && availableColumns.length > 0) {
+        setXAxis(availableColumns[0]);
       }
-      if (!yAxis && columns.length > 1) {
-        setYAxis(columns[1]);
+      if (!yAxis && availableColumns.length > 1) {
+        setYAxis(availableColumns[1]);
       }
     }
-  }, [project, xAxis, yAxis]);
+  }, [availableColumns, xAxis, yAxis]);
 
   const generateChartMutation = useMutation({
     mutationFn: async () => {
@@ -67,8 +70,6 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
   const handleGenerateChart = () => {
     generateChartMutation.mutate();
   };
-
-  const availableColumns = project?.datasetInfo?.columns || [];
 
   const renderChart = () => {
     if (!chartData || !chartData.data) return null;
@@ -121,11 +122,11 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
       <Card>
         <CardHeader>
           <CardTitle>Dataset Analysis</CardTitle>
-          {project?.datasetInfo && (
+          {datasetInfo && (
             <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span>{project.datasetInfo.filename}</span>
+              <span>{datasetInfo.filename}</span>
               <span>•</span>
-              <span>{project.datasetInfo.rows} rows</span>
+              <span>{datasetInfo.rows} rows</span>
               <span>•</span>
               <span>{availableColumns.length} columns</span>
             </div>
@@ -136,7 +137,7 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
             <div className="space-y-4">
               <h4 className="font-semibold text-gray-900">Available Columns:</h4>
               <div className="flex flex-wrap gap-2">
-                {availableColumns.map((column, index) => (
+                {availableColumns.map((column: string, index: number) => (
                   <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
                     {column}
                   </span>
@@ -178,7 +179,7 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
                     <SelectValue placeholder="Select X-axis column" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableColumns.map((column) => (
+                    {availableColumns.map((column: string) => (
                       <SelectItem key={column} value={column}>
                         {column}
                       </SelectItem>
@@ -194,7 +195,7 @@ export default function ChartBuilder({ projectId }: ChartBuilderProps) {
                     <SelectValue placeholder="Select Y-axis column" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableColumns.map((column) => (
+                    {availableColumns.map((column: string) => (
                       <SelectItem key={column} value={column}>
                         {column}
                       </SelectItem>
