@@ -25,11 +25,13 @@ export default function Simulation() {
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+    refetchInterval: 2000, // Refetch every 2 seconds
   });
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
     enabled: !!projectId,
+    refetchInterval: 2000, // Refetch every 2 seconds to pick up changes
   });
 
   // If no project ID, use the first available project
@@ -60,7 +62,7 @@ export default function Simulation() {
       // Update project to next step after successful upload
       if (currentProject) {
         try {
-          await fetch(`/api/projects/${currentProject.id}`, {
+          const updateResponse = await fetch(`/api/projects/${currentProject.id}`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -71,6 +73,8 @@ export default function Simulation() {
               datasetInfo: data.dataset
             }),
           });
+          const updatedProject = await updateResponse.json();
+          console.log("Project updated:", updatedProject);
         } catch (error) {
           console.error("Failed to update project step:", error);
         }
@@ -82,11 +86,18 @@ export default function Simulation() {
       });
       setIsUploading(false);
       
-      // Refresh project data
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
-      }
+      // Force refresh project data with a small delay to ensure backend update completes
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+        if (projectId) {
+          queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+        }
+        // Also refetch explicitly
+        queryClient.refetchQueries({ queryKey: ["/api/projects"] });
+        if (projectId) {
+          queryClient.refetchQueries({ queryKey: ["/api/projects", projectId] });
+        }
+      }, 500);
       
       // Reset file input
       if (fileInputRef.current) {
