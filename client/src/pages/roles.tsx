@@ -60,7 +60,7 @@ export default function Roles() {
         body: JSON.stringify({
           title: `${roleData.roleName} Simulation Project`,
           description: `Complete data science simulation as a ${roleData.roleName}`,
-          role: roleData.roleId,
+          type: "simulation", // Required field in schema
           currentStep: "data_ingestion",
           status: "in_progress",
           progress: 0
@@ -68,7 +68,9 @@ export default function Roles() {
       });
       
       if (!response.ok) {
-        throw new Error("Failed to create project");
+        const errorData = await response.text();
+        console.error("Project creation failed:", errorData);
+        throw new Error(`Failed to create project: ${response.status}`);
       }
       
       return response.json();

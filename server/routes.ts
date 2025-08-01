@@ -57,7 +57,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject(validatedData);
       res.status(201).json(project);
     } catch (error) {
-      res.status(400).json({ message: "Invalid project data" });
+      console.error("Project creation error:", error);
+      res.status(400).json({ message: "Invalid project data", error: error.message });
     }
   });
 
