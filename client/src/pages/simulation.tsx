@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Project } from "@shared/schema";
 import Navigation from "@/components/navigation";
 import ChartBuilder from "@/components/chart-builder";
@@ -8,11 +8,16 @@ import ExplainabilityModule from "@/components/explainability-module";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { Upload, Play, Brain, BarChart3, Code2 } from "lucide-react";
 
 export default function Simulation() {
   const [location] = useLocation();
   const [showExplainability, setShowExplainability] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Get project ID from URL parameters
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -30,6 +35,79 @@ export default function Simulation() {
   // If no project ID, use the first available project
   const currentProject = projectId ? project : projects?.[0];
   const loading = projectId ? isLoading : projectsLoading;
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!currentProject) throw new Error("No project selected");
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`/api/projects/${currentProject.id}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Upload successful",
+        description: "Your dataset has been uploaded and analyzed.",
+      });
+      // Refresh project data
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message || "There was an error uploading your file.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsUploading(false);
+    }
+  });
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['.csv', '.xlsx', '.xls', '.json'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!allowedTypes.includes(fileExtension)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a CSV, Excel, or JSON file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    uploadMutation.mutate(file);
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   if (loading) {
     return (
@@ -89,9 +167,16 @@ export default function Simulation() {
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Your Dataset</h3>
                 <p className="text-gray-600 mb-4">Support for CSV, Excel, and JSON files up to 10MB</p>
-                <Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button onClick={triggerFileUpload} disabled={isUploading}>
                   <Upload className="w-4 h-4 mr-2" />
-                  Choose File
+                  {isUploading ? "Uploading..." : "Choose File"}
                 </Button>
               </div>
             </CardContent>

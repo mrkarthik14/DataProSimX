@@ -58,7 +58,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(project);
     } catch (error) {
       console.error("Project creation error:", error);
-      res.status(400).json({ message: "Invalid project data", error: error.message });
+      res.status(400).json({ 
+        message: "Invalid project data", 
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
