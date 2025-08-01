@@ -54,23 +54,30 @@ export default function Simulation() {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Upload successful:", data);
       toast({
         title: "Upload successful",
         description: "Your dataset has been uploaded and analyzed.",
       });
+      setIsUploading(false);
       // Refresh project data
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      if (projectId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      }
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     },
     onError: (error) => {
+      console.error("Upload failed:", error);
       toast({
         title: "Upload failed",
         description: error.message || "There was an error uploading your file.",
         variant: "destructive",
       });
-    },
-    onSettled: () => {
       setIsUploading(false);
     }
   });
@@ -78,6 +85,8 @@ export default function Simulation() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    console.log("File selected:", file.name, file.size);
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
@@ -101,6 +110,7 @@ export default function Simulation() {
       return;
     }
 
+    console.log("Starting upload...");
     setIsUploading(true);
     uploadMutation.mutate(file);
   };
@@ -174,10 +184,15 @@ export default function Simulation() {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-                <Button onClick={triggerFileUpload} disabled={isUploading}>
+                <Button onClick={triggerFileUpload} disabled={isUploading || uploadMutation.isPending}>
                   <Upload className="w-4 h-4 mr-2" />
-                  {isUploading ? "Uploading..." : "Choose File"}
+                  {isUploading || uploadMutation.isPending ? "Uploading..." : "Choose File"}
                 </Button>
+                {isUploading && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    Processing your file...
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
